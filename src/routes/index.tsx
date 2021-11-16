@@ -1,11 +1,17 @@
 import React from "react"
 import { Route } from "react-router-dom"
-import RouteGuard from "./routeGuard"
-import Login from "../pages/login/index"
-const routes = [
+import RouteGuard, { RouteProps } from "./routeGuard"
+import Login from "../pages/login"
+import Home from "../pages/home"
+const routes: RouteProps[] = [
+  {
+    Component: Home,
+    path: "/",
+  },
   {
     Component: Login,
     path: "/login",
+    beforeLoggedIn: true,
   },
 ]
 

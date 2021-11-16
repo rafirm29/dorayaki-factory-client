@@ -1,10 +1,11 @@
 import React from "react"
-import { Navigate, Route as ReactRouterDomRoute } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAuth } from "../context/auth"
-type RouteProps = {
+export type RouteProps = {
   Component: React.ComponentType
   beforeLoggedIn?: boolean
   afterLoggedIn?: boolean
+  path?: string
 }
 
 export default ({
