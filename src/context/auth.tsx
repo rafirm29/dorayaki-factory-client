@@ -1,5 +1,6 @@
 import React from "react"
 import axios from "axios"
+import { useAsync } from "react-async"
 import { User } from "../interface/User"
 import { Check } from "../api/auth"
 interface Props {
@@ -13,6 +14,7 @@ interface IAuth {
   getToken: () => string
   setToken: (token: string) => void
   logout: () => void
+  isLoading: boolean
 }
 
 const AuthContext = React.createContext<IAuth>({} as IAuth)
@@ -27,6 +29,7 @@ const AuthProvider = ({ children }: Props) => {
     localStorage.setItem("token", token)
   }, [token])
 
+  const [isLoading, setIsLoading] = React.useState(true)
   React.useEffect(() => {
     const axiosBase = axios.create()
     const retrieveUser = async () => {
@@ -35,6 +38,8 @@ const AuthProvider = ({ children }: Props) => {
         setUser(user)
       } catch (e) {
         console.error(e)
+      } finally {
+        setIsLoading(false)
       }
     }
     retrieveUser()
@@ -54,6 +59,7 @@ const AuthProvider = ({ children }: Props) => {
         getToken: () => token,
         setToken,
         logout,
+        isLoading,
       }}
     >
       {children}
