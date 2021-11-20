@@ -2,8 +2,9 @@ import React from "react"
 import { Route } from "react-router-dom"
 import RouteGuard, { RouteProps } from "./routeGuard"
 import Login from "../pages/login"
+import Ingridients from "../pages/ingridients"
 import Home from "../pages/home"
-const routes: RouteProps[] = [
+export const routes: RouteProps[] = [
   {
     Component: Home,
     path: "/",
@@ -12,6 +13,11 @@ const routes: RouteProps[] = [
     Component: Login,
     path: "/login",
     beforeLoggedIn: true,
+  },
+  {
+    Component: Ingridients,
+    path: "/ingridients",
+    afterLoggedIn: true,
   },
 ]
 
