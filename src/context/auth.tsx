@@ -33,7 +33,7 @@ const AuthProvider = ({ children }: Props) => {
     const axiosBase = axios.create()
     try {
       const user = await Check(axiosBase)
-      setUser(user.data)
+      setUser(user.data.user)
     } catch (e) {
       console.error(e)
       setToken("")
