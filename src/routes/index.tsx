@@ -2,21 +2,21 @@ import React from "react"
 import { Route } from "react-router-dom"
 import RouteGuard, { RouteProps } from "./routeGuard"
 import Login from "../pages/login"
-import Ingridients from "../pages/ingridients"
+import Ingridients from "../pages/ingredients"
 import Home from "../pages/home"
 export const routes: RouteProps[] = [
   {
     Component: Home,
-    path: "/",
+    path: "/home",
   },
   {
     Component: Login,
-    path: "/login",
+    path: "/",
     beforeLoggedIn: true,
   },
   {
     Component: Ingridients,
-    path: "/ingridients",
+    path: "/ingredients",
     afterLoggedIn: true,
   },
 ]
