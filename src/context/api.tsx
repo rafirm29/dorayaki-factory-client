@@ -1,6 +1,7 @@
 import React from "react"
 import axios, { AxiosInstance } from "axios"
 import { useAuth } from "./auth"
+import Config from "../config"
 
 interface Props {
   children: React.ReactNode
@@ -15,7 +16,9 @@ export const useApi = () => React.useContext<IApi>(ApiContext)
 
 const ApiProvider: React.FC = ({ children }) => {
   const auth = useAuth()
-  const apiClient = axios.create()
+  const apiClient = axios.create({
+    baseURL: Config.API_URL,
+  })
   apiClient.interceptors.request.use((config) => {
     const token = auth.getToken()
     if (config.headers) {

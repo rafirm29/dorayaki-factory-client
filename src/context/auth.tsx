@@ -1,7 +1,6 @@
 import React from "react"
 import axios from "axios"
-import { useAsync } from "react-async"
-import { User } from "../interface/User"
+import { User } from "../interface/user/User"
 import { Check } from "../api/auth"
 interface Props {
   children: React.ReactNode
@@ -24,24 +23,25 @@ const AuthProvider = ({ children }: Props) => {
   const [token, setToken] = React.useState<string>(
     localStorage.getItem("token") || ""
   )
+  const [isLoading, setIsLoading] = React.useState(true)
   const [user, setUser] = React.useState<User | null>(null)
   React.useEffect(() => {
     localStorage.setItem("token", token)
   }, [token])
 
-  const [isLoading, setIsLoading] = React.useState(true)
-  React.useEffect(() => {
+  const retrieveUser = async () => {
     const axiosBase = axios.create()
-    const retrieveUser = async () => {
-      try {
-        const user = await Check(axiosBase)
-        setUser(user)
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setIsLoading(false)
-      }
+    try {
+      const user = await Check(axiosBase)
+      setUser(user.data)
+    } catch (e) {
+      console.error(e)
+      setToken("")
+    } finally {
+      setIsLoading(false)
     }
+  }
+  React.useEffect(() => {
     retrieveUser()
   }, [])
 
@@ -55,7 +55,7 @@ const AuthProvider = ({ children }: Props) => {
       value={{
         getUser: () => user,
         setUser,
-        isAuthenticated: () => user !== null,
+        isAuthenticated: () => token !== "",
         getToken: () => token,
         setToken,
         logout,

@@ -6,12 +6,10 @@ import AuthProvider from "./context/auth"
 import ApiProvider from "./context/api"
 
 ReactDOM.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <ApiProvider>
-        <App />
-      </ApiProvider>
-    </AuthProvider>
-  </React.StrictMode>,
+  <AuthProvider>
+    <ApiProvider>
+      <App />
+    </ApiProvider>
+  </AuthProvider>,
   document.getElementById("root")
 )

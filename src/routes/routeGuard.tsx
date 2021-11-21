@@ -18,7 +18,7 @@ export default ({
     return <Navigate to="/" />
   }
   if (beforeLoggedIn && auth.isAuthenticated()) {
-    return <Navigate to="/" />
+    return <Navigate to="/ingredients" />
   }
   return <Component />
 }
