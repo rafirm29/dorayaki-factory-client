@@ -2,6 +2,7 @@ import React from "react"
 import { Table, InputNumber, Button, Modal, Form, Input, Upload } from "antd"
 import { UploadOutlined } from "@ant-design/icons"
 import { UploadFile } from "../../interface/file/FileUpload"
+import { Ingredient } from "../../interface/ingredient/Ingredient"
 import Template from "../../components/template"
 import "./style.css"
 const { Column } = Table
@@ -12,20 +13,22 @@ interface Item {
 }
 
 export default () => {
-  const dummyItems: Item[] = [
+  const dummyItems: Ingredient[] = [
     {
       id: 1,
       name: "Name 1",
-      total: 2,
+      stock: 2,
+      description: "Dorayaki enak",
     },
     {
       id: 2,
       name: "Name 2",
-      total: 3,
+      stock: 3,
     },
   ]
-  const [data, setData] = React.useState<Item[]>(dummyItems)
+  const [data, setData] = React.useState<Ingredient[]>(dummyItems)
   const [isModalVisible, setIsModalVisible] = React.useState(false)
+  const [selectedIngredient, setSelectedIngredient] = React.useState(-1)
 
   return (
     <Template title="Bahan Baku">
@@ -42,20 +45,29 @@ export default () => {
           pagination={false}
           rowClassName="bg-transparent"
           className="w-full"
+          onRow={(_, idx) => {
+            return {
+              onClick: () => {
+                console.log(idx)
+                idx !== undefined && setSelectedIngredient(idx)
+              },
+            }
+          }}
         >
           <Column title="Nama" dataIndex="name" key="name"></Column>
           <Column
             width={1}
             title="Jumlah"
-            dataIndex="total"
+            dataIndex="stock"
             key="total"
             render={(total, _, i) => (
               <InputNumber
                 key={i}
                 value={total}
+                min={0}
                 onChange={(newTotal) => {
                   let newData = [...data]
-                  newData[i].total = newTotal
+                  newData[i].stock = newTotal
                   setData([...newData])
                 }}
               />
@@ -69,15 +81,43 @@ export default () => {
       {isModalVisible && (
         <AddIngredientModal setIsModalVisible={setIsModalVisible} />
       )}
+      {selectedIngredient !== -1 && (
+        <DetailModal
+          {...data[selectedIngredient]}
+          closeModal={() => setSelectedIngredient(-1)}
+        />
+      )}
     </Template>
   )
 }
 
-interface ModalProps {
+interface DetailProps extends Ingredient {
+  closeModal: () => void
+}
+
+const DetailModal = (props: DetailProps) => {
+  console.log(props)
+  return (
+    <Modal
+      keyboard
+      footer={[]}
+      onCancel={() => props.closeModal()}
+      visible={true}
+    >
+      <div>
+        <h2>{props.name}</h2>
+        {props.picture && <img src={props.picture} />}
+        <p>{props.description}</p>
+      </div>
+    </Modal>
+  )
+}
+
+interface AddIngredientProps {
   setIsModalVisible: (isVisible: boolean) => void
 }
 
-const AddIngredientModal = (props: ModalProps) => {
+const AddIngredientModal = (props: AddIngredientProps) => {
   const [file, setFile] = React.useState<UploadFile>()
   const handleAddIngredient = (val) => {
     console.log(val)
