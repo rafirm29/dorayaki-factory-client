@@ -1,5 +1,7 @@
 import React from "react"
-import { Table, InputNumber, Button, Modal, Form, Input } from "antd"
+import { Table, InputNumber, Button, Modal, Form, Input, Upload } from "antd"
+import { UploadOutlined } from "@ant-design/icons"
+import { UploadFile } from "../../interface/file/FileUpload"
 import Template from "../../components/template"
 import "./style.css"
 const { Column } = Table
@@ -8,6 +10,7 @@ interface Item {
   name: String
   total: Number
 }
+
 export default () => {
   const dummyItems: Item[] = [
     {
@@ -23,6 +26,7 @@ export default () => {
   ]
   const [data, setData] = React.useState<Item[]>(dummyItems)
   const [isModalVisible, setIsModalVisible] = React.useState(false)
+
   return (
     <Template title="Bahan Baku">
       <div className="w-full max-w-6xl mx-auto px-3 flex flex-col items-center">
@@ -62,40 +66,81 @@ export default () => {
           Update
         </Button>
       </div>
-      <Modal
-        visible={isModalVisible}
-        keyboard
-        footer={[]}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form className="py-8">
-          <Form.Item
-            name="name"
-            rules={[{ required: true, message: "Ingredients name required" }]}
-            labelCol={{ span: 5 }}
-            wrapperCol={{ span: 20 }}
-            label="Name"
-          >
-            <Input placeholder="Name"></Input>
-          </Form.Item>
-          <Form.Item
-            name="initialStock"
-            rules={[{ required: true, message: "Intial stock required" }]}
-            labelCol={{ span: 5 }}
-            wrapperCol={{ span: 20 }}
-            label="Initial Stock"
-          >
-            <InputNumber className="w-full" min={0}></InputNumber>
-          </Form.Item>
-          <Button
-            type="primary"
-            className="my-3 h-10 float-right"
-            htmlType="submit"
-          >
-            Submit
-          </Button>
-        </Form>
-      </Modal>
+      {isModalVisible && (
+        <AddIngredientModal setIsModalVisible={setIsModalVisible} />
+      )}
     </Template>
+  )
+}
+
+interface ModalProps {
+  setIsModalVisible: (isVisible: boolean) => void
+}
+
+const AddIngredientModal = (props: ModalProps) => {
+  const [file, setFile] = React.useState<UploadFile>()
+  const handleAddIngredient = (val) => {
+    console.log(val)
+  }
+  return (
+    <Modal
+      keyboard
+      footer={[]}
+      onCancel={() => props.setIsModalVisible(false)}
+      visible={true}
+    >
+      <Form className="py-8" onFinish={handleAddIngredient}>
+        <Form.Item
+          name="name"
+          rules={[{ required: true, message: "Ingredients name required" }]}
+          labelCol={{ span: 5 }}
+          wrapperCol={{ span: 20 }}
+          label="Name"
+        >
+          <Input placeholder="Name"></Input>
+        </Form.Item>
+        <Form.Item
+          name="description"
+          labelCol={{ span: 5 }}
+          wrapperCol={{ span: 20 }}
+          label="Description"
+        >
+          <Input placeholder="Description"></Input>
+        </Form.Item>
+        <Form.Item
+          name="initialStock"
+          rules={[{ required: true, message: "Intial stock required" }]}
+          labelCol={{ span: 5 }}
+          wrapperCol={{ span: 20 }}
+          label="Initial Stock"
+        >
+          <InputNumber className="w-full" min={0}></InputNumber>
+        </Form.Item>
+        <Form.Item
+          name="image"
+          rules={[{ required: true, message: "Image required" }]}
+          labelCol={{ span: 5 }}
+          wrapperCol={{ span: 20 }}
+          label="Image"
+        >
+          <Upload
+            beforeUpload={() => false}
+            maxCount={1}
+            onChange={(file) => setFile(file.file)}
+            accept="image/*"
+            fileList={file === undefined ? [] : [file]}
+          >
+            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+          </Upload>
+        </Form.Item>
+        <Button
+          type="primary"
+          className="my-3 h-10 float-right"
+          htmlType="submit"
+        >
+          Submit
+        </Button>
+      </Form>
+    </Modal>
   )
 }
