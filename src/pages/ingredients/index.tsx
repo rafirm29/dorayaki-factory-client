@@ -32,52 +32,50 @@ export default () => {
 
   return (
     <Template title="Bahan Baku">
-      <div className="w-full max-w-6xl mx-auto px-3 flex flex-col items-center">
-        <Button
-          className="self-end mb-3"
-          onClick={() => setIsModalVisible(true)}
-        >
-          +
-        </Button>
-        <Table
-          dataSource={data}
-          rowKey="id"
-          pagination={false}
-          rowClassName="bg-transparent"
-          className="w-full"
-          onRow={(_, idx) => {
+      <Button className="self-end mb-3" onClick={() => setIsModalVisible(true)}>
+        +
+      </Button>
+      <Table
+        dataSource={data}
+        rowKey="id"
+        pagination={false}
+        rowClassName="bg-transparent"
+        className="w-full"
+      >
+        <Column
+          title="Nama"
+          dataIndex="name"
+          key="name"
+          onCell={(_, idx) => {
             return {
               onClick: () => {
-                console.log(idx)
                 idx !== undefined && setSelectedIngredient(idx)
               },
             }
           }}
-        >
-          <Column title="Nama" dataIndex="name" key="name"></Column>
-          <Column
-            width={1}
-            title="Jumlah"
-            dataIndex="stock"
-            key="total"
-            render={(total, _, i) => (
-              <InputNumber
-                key={i}
-                value={total}
-                min={0}
-                onChange={(newTotal) => {
-                  let newData = [...data]
-                  newData[i].stock = newTotal
-                  setData([...newData])
-                }}
-              />
-            )}
-          ></Column>
-        </Table>
-        <Button type="primary" className="mx-auto mt-4">
-          Update
-        </Button>
-      </div>
+        ></Column>
+        <Column
+          width={1}
+          title="Jumlah"
+          dataIndex="stock"
+          key="total"
+          render={(total, _, i) => (
+            <InputNumber
+              key={i}
+              value={total}
+              min={0}
+              onChange={(newTotal) => {
+                let newData = [...data]
+                newData[i].stock = newTotal
+                setData([...newData])
+              }}
+            />
+          )}
+        ></Column>
+      </Table>
+      <Button type="primary" className="mx-auto mt-4">
+        Update
+      </Button>
       {isModalVisible && (
         <AddIngredientModal setIsModalVisible={setIsModalVisible} />
       )}

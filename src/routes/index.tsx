@@ -3,6 +3,7 @@ import { Route } from "react-router-dom"
 import RouteGuard, { RouteProps } from "./routeGuard"
 import Login from "../pages/login"
 import Ingridients from "../pages/ingredients"
+import Request from "../pages/request"
 import Home from "../pages/home"
 export const routes: RouteProps[] = [
   {
@@ -17,6 +18,11 @@ export const routes: RouteProps[] = [
   {
     Component: Ingridients,
     path: "/ingredients",
+    afterLoggedIn: true,
+  },
+  {
+    Component: Request,
+    path: "/request",
     afterLoggedIn: true,
   },
 ]
