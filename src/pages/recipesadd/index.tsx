@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   Select,
@@ -8,23 +8,40 @@ import {
   Popconfirm,
   Form,
   Typography,
+  message,
 } from 'antd';
 import Template from '../../components/template';
-import { Ingredient } from '../../interface/ingredient/Ingredient';
+import {
+  Ingredient,
+  IngredientMinified,
+} from '../../interface/ingredient/Ingredient';
+import { GetAllIngredientMinified } from '../../api/ingredients';
+import { useApi } from '../../context/api';
+import { CreateRecipe } from '../../api/recipes';
 
 const { Option } = Select;
 
-// Dummy datas
-const dummyIngredient: Ingredient[] = [];
-const dummyBahan: string[] = ['Gula', 'Tepung', 'Telur'];
+interface IngredientItem {
+  id: number;
+  name: string;
+  stock: number;
+}
 
-const inputBahan = (
-  <Select>
-    {dummyBahan.map((ingredient) => {
-      return <Option value={ingredient}>{ingredient}</Option>;
-    })}
-  </Select>
-);
+// Dummy datas
+
+const InputBahan = (listBahan: IngredientMinified[]) => {
+  return (
+    <Select>
+      {listBahan.map((ingredient) => {
+        return (
+          <Option value={(ingredient.id, ingredient.name)}>
+            {ingredient.name}
+          </Option>
+        );
+      })}
+    </Select>
+  );
+};
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   editing: boolean;
@@ -36,48 +53,66 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
-const EditableCell: React.FC<EditableCellProps> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
-}) => {
-  const inputNode = inputType === 'number' ? <InputNumber /> : inputBahan;
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
-  );
-};
-
 const recipesadd = () => {
+  const api = useApi();
   const [form] = Form.useForm();
-  const [data, setData] = useState(dummyIngredient);
+  const [data, setData] = useState([] as IngredientItem[]);
+  const [availableIngredients, setAvailableIngredients] = useState(
+    [] as IngredientMinified[]
+  );
   const [editingKey, setEditingKey] = useState('');
+  const Refresh = async () => {
+    const response = await GetAllIngredientMinified(api.apiClient);
+    console.log(response);
+    setAvailableIngredients(response.data);
+  };
+  useEffect(() => {
+    Refresh();
+  }, []);
 
-  const isEditing = (record: Ingredient) => record.id.toString() === editingKey;
+  const EditableCell: React.FC<EditableCellProps> = ({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  }) => {
+    const inputNode =
+      inputType === 'number' ? (
+        <InputNumber />
+      ) : (
+        InputBahan(availableIngredients)
+      );
 
-  const edit = (record: Partial<Ingredient> & { id: number }) => {
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <Form.Item
+            name={dataIndex}
+            style={{ margin: 0 }}
+            rules={[
+              {
+                required: true,
+                message: `Please Input ${title}!`,
+              },
+            ]}
+          >
+            {inputNode}
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    );
+  };
+
+  const isEditing = (record: IngredientItem) =>
+    record.id.toString() === editingKey;
+
+  const edit = (record: Partial<IngredientItem> & { id: number }) => {
     form.setFieldsValue({ name: '', stock: 0, ...record });
     setEditingKey(record.id.toString());
   };
@@ -88,7 +123,7 @@ const recipesadd = () => {
 
   const save = async (key: React.Key) => {
     try {
-      const row = (await form.validateFields()) as Ingredient;
+      const row = (await form.validateFields()) as IngredientItem;
 
       const newData = [...data];
       const index = newData.findIndex((item) => key === item.id);
@@ -115,9 +150,9 @@ const recipesadd = () => {
 
   const add = () => {
     const newId = data.length + 1;
-    const newData: Ingredient = {
+    const newData: IngredientItem = {
       id: newId,
-      name: 'Gula',
+      name: '',
       stock: 0,
     };
     setData([...data, newData]);
@@ -139,7 +174,7 @@ const recipesadd = () => {
     {
       title: 'Aksi',
       dataIndex: 'aksi',
-      render: (_: any, record: Ingredient) => {
+      render: (_: any, record: IngredientItem) => {
         const editable = isEditing(record);
         return editable ? (
           <span>
@@ -172,7 +207,7 @@ const recipesadd = () => {
     }
     return {
       ...col,
-      onCell: (record: Ingredient) => ({
+      onCell: (record: IngredientItem) => ({
         record,
         inputType: col.dataIndex === 'stock' ? 'number' : 'ingredient',
         dataIndex: col.dataIndex,
@@ -182,13 +217,52 @@ const recipesadd = () => {
     };
   });
 
+  const findIdByName = (item: IngredientItem) => {
+    let id = availableIngredients.filter(
+      (ingredient) => item.name === ingredient.name
+    )[0].id;
+    return id;
+  };
+
+  const handleSubmit = async (resp: any) => {
+    const recipes: any = [];
+    data.forEach((item) => {
+      const id = findIdByName(item);
+      const amount = item.stock;
+      recipes.push({ id: id, amount: amount });
+    });
+
+    const payload = {
+      name: `${resp.recipeName}`,
+      description: `${resp.description}`,
+      picture: 'https://joeschmoe.io/api/v1/random',
+      recipes: recipes,
+    };
+    console.log(payload);
+    try {
+      const response = await CreateRecipe(api.apiClient, payload);
+      console.log(response);
+      message.success('Berhasil dibuat');
+    } catch {
+      message.success('Terjadi kesalahan');
+    }
+  };
+
   return (
     <Template title="Tambah Resep">
-      <Form form={form} component={false}>
-        <Form.Item label="Nama" className="w-3/4">
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        className="w-3/4"
+      >
+        <Form.Item name="recipeName" label="Nama" className="w-full">
           <Input placeholder="Nama resep" />
         </Form.Item>
-        <Form.Item label="Bahan" className="w-3/4">
+        <Form.Item name="description" label="Deskripsi" className="w-full">
+          <Input.TextArea placeholder="Deskripsi" />
+        </Form.Item>
+        <Form.Item name="table" label="Bahan" className="w-full">
           <Table
             components={{
               body: {
@@ -212,9 +286,9 @@ const recipesadd = () => {
             className="w-full"
           />
         </Form.Item>
-        <Form.Item>
-          <Button type="primary">Submit</Button>
-        </Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
       </Form>
     </Template>
   );
