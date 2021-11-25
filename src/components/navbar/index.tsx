@@ -2,8 +2,17 @@ import React from 'react';
 import { Menu, Avatar } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/auth';
+import { useNavigate } from 'react-router';
 
 const navbar = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    auth.logout();
+    navigate('/');
+  };
+
   return (
     <Menu mode="horizontal" className="flex flex-wrap bg-black text-white">
       <div className="ml-4 flex items-center">
@@ -16,7 +25,10 @@ const navbar = () => {
         <div className="ml-2">Admin</div>
       </div>
       <div className="mr-6 flex items-center">
-        <LogoutOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
+        <LogoutOutlined
+          style={{ fontSize: '20px', cursor: 'pointer' }}
+          onClick={handleLogout}
+        />
       </div>
     </Menu>
   );
