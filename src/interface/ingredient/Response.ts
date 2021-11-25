@@ -1,5 +1,8 @@
-import { BaseResponse } from "../Base"
-import { Ingredient } from "./Ingredient"
+import { BaseResponse } from '../Base';
+import { Ingredient, IngredientMinified } from './Ingredient';
 export interface GetAllResponse {
-  data: Ingredient[]
+  data: Ingredient[];
+}
+export interface GetAllResponseMinified {
+  data: IngredientMinified[];
 }
