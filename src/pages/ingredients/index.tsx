@@ -1,10 +1,28 @@
 import React from "react"
-import { Table, InputNumber, Button, Modal, Form, Input, Upload } from "antd"
+import {
+  Table,
+  InputNumber,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Upload,
+  message,
+  Pagination,
+} from "antd"
 import { UploadOutlined } from "@ant-design/icons"
 import { UploadFile } from "../../interface/file/FileUpload"
 import { Ingredient } from "../../interface/ingredient/Ingredient"
+import { Upload as UploadAPI } from "../../api/file"
+import {
+  CreateIngredient,
+  GetAllIngredient,
+  UpdateIngredient,
+} from "../../api/ingredients"
 import Template from "../../components/template"
+import { CreateRequest } from "../../interface/ingredient/Request"
 import "./style.css"
+import { useApi } from "../../context/api"
 const { Column } = Table
 interface Item {
   id: Number
@@ -12,24 +30,34 @@ interface Item {
   total: Number
 }
 
+interface IngredientItem extends Ingredient {
+  changedStock: number
+}
+
 export default () => {
-  const dummyItems: Ingredient[] = [
-    {
-      id: 1,
-      name: "Name 1",
-      stock: 2,
-      description: "Dorayaki enak",
-    },
-    {
-      id: 2,
-      name: "Name 2",
-      stock: 3,
-    },
-  ]
-  const [data, setData] = React.useState<Ingredient[]>(dummyItems)
+  const [page, setPage] = React.useState(1)
+  const [totalItem, setTotalItem] = React.useState(0)
+  const [data, setData] = React.useState<IngredientItem[]>([])
   const [isModalVisible, setIsModalVisible] = React.useState(false)
   const [selectedIngredient, setSelectedIngredient] = React.useState(-1)
+  const api = useApi()
 
+  const Refresh = async () => {
+    const response = await GetAllIngredient(api.apiClient, page)
+    let ingredientItems: IngredientItem[] = []
+    let ingredients = response.data.items
+    ingredients.forEach((i) => {
+      let j = i as IngredientItem
+      j.changedStock = j.stock
+      ingredientItems.push(j)
+    })
+    console.log(response)
+    setData(ingredientItems)
+    setTotalItem(response.data.totalItems)
+  }
+  React.useEffect(() => {
+    Refresh()
+  }, [page])
   return (
     <Template title="Bahan Baku">
       <Button className="self-end mb-3" onClick={() => setIsModalVisible(true)}>
@@ -55,9 +83,9 @@ export default () => {
           }}
         ></Column>
         <Column
-          width={1}
+          width={2}
           title="Jumlah"
-          dataIndex="stock"
+          dataIndex="changedStock"
           key="total"
           render={(total, _, i) => (
             <InputNumber
@@ -66,18 +94,54 @@ export default () => {
               min={0}
               onChange={(newTotal) => {
                 let newData = [...data]
-                newData[i].stock = newTotal
+                newData[i].changedStock = newTotal
                 setData([...newData])
               }}
             />
           )}
         ></Column>
+        <Column
+          width={10}
+          title="Action"
+          dataIndex="stock"
+          key="stock"
+          render={(_, record: IngredientItem, i) => {
+            return (
+              <Button
+                type="primary"
+                className="mx-auto mt-4"
+                disabled={record.stock === record.changedStock}
+                onClick={async () => {
+                  try {
+                    record.stock = record.changedStock
+                    const response = await UpdateIngredient(
+                      api.apiClient,
+                      record
+                    )
+                    let newData = [...data]
+                    newData[i].stock = record.changedStock
+                    setData(newData)
+                  } catch {}
+                }}
+              >
+                Update
+              </Button>
+            )
+          }}
+        ></Column>
       </Table>
-      <Button type="primary" className="mx-auto mt-4">
-        Update
-      </Button>
+      <Pagination
+        pageSize={10}
+        current={page}
+        total={totalItem}
+        onChange={(page) => setPage(page)}
+      />
       {isModalVisible && (
-        <AddIngredientModal setIsModalVisible={setIsModalVisible} />
+        <AddIngredientModal
+          closeModal={() => {
+            setIsModalVisible(false)
+          }}
+        />
       )}
       {selectedIngredient !== -1 && (
         <DetailModal
@@ -112,22 +176,35 @@ const DetailModal = (props: DetailProps) => {
 }
 
 interface AddIngredientProps {
-  setIsModalVisible: (isVisible: boolean) => void
+  closeModal: () => void
 }
 
 const AddIngredientModal = (props: AddIngredientProps) => {
   const [file, setFile] = React.useState<UploadFile>()
-  const handleAddIngredient = (val) => {
-    console.log(val)
+  const [form] = Form.useForm()
+
+  const api = useApi()
+  const handleAddIngredient = async (val) => {
+    const file = val.file.file
+    try {
+      const fileResponse = await UploadAPI(api.apiClient, file)
+      val = val as CreateRequest
+      val.picture = fileResponse.data.url
+      const response = await CreateIngredient(api.apiClient, val)
+      message.success("Bahan baku berhasil dibuat !!!")
+      form.resetFields()
+    } catch {
+      message.error("Terjadi kesalahan. Silahkan coba beberapa saat lagi ")
+    }
   }
   return (
     <Modal
       keyboard
       footer={[]}
-      onCancel={() => props.setIsModalVisible(false)}
+      onCancel={() => props.closeModal()}
       visible={true}
     >
-      <Form className="py-8" onFinish={handleAddIngredient}>
+      <Form className="py-8" onFinish={handleAddIngredient} form={form}>
         <Form.Item
           name="name"
           rules={[{ required: true, message: "Ingredients name required" }]}
@@ -141,6 +218,7 @@ const AddIngredientModal = (props: AddIngredientProps) => {
           name="description"
           labelCol={{ span: 5 }}
           wrapperCol={{ span: 20 }}
+          rules={[{ required: true, message: "Description required" }]}
           label="Description"
         >
           <Input placeholder="Description"></Input>
@@ -155,7 +233,7 @@ const AddIngredientModal = (props: AddIngredientProps) => {
           <InputNumber className="w-full" min={0}></InputNumber>
         </Form.Item>
         <Form.Item
-          name="image"
+          name="file"
           rules={[{ required: true, message: "Image required" }]}
           labelCol={{ span: 5 }}
           wrapperCol={{ span: 20 }}
