@@ -1,6 +1,6 @@
 import { Ingredient } from '../ingredient/Ingredient';
+import { Dorayaki } from '../dorayaki/Dorayaki';
 export interface Recipe {
-  id: number;
-  name: string;
+  dorayaki: Dorayaki;
   ingredients: Ingredient[];
 }
