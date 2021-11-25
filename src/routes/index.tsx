@@ -30,12 +30,12 @@ export const routes: RouteProps[] = [
   {
     Component: RecipesList,
     path: '/recipes/list',
-    beforeLoggedIn: true,
+    afterLoggedIn: true,
   },
   {
     Component: RecipesAdd,
     path: '/recipes/add',
-    beforeLoggedIn: true,
+    afterLoggedIn: true,
   },
 ];
 
