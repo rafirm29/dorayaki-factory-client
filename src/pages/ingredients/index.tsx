@@ -51,7 +51,6 @@ export default () => {
       j.changedStock = j.stock
       ingredientItems.push(j)
     })
-    console.log(response)
     setData(ingredientItems)
     setTotalItem(response.data.totalItems)
   }

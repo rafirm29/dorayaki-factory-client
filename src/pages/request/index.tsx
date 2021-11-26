@@ -1,8 +1,10 @@
 import React from "react"
 import Template from "../../components/template"
 import { Inbound, InboundStatus } from "../../interface/inbound/Inbound"
-import { Button, Input, Table, Tag } from "antd"
+import { GetAllInbound } from "../../api/inbound"
+import { Button, Input, Table, Tag, Pagination } from "antd"
 import Column from "antd/lib/table/Column"
+import { useApi } from "../../context/api"
 const { Search } = Input
 
 const dummyItems: Inbound[] = [
@@ -36,18 +38,21 @@ const dummyItems: Inbound[] = [
 const formatDate = (date: Date) => ``
 
 export default () => {
+  const api = useApi()
   const [requests, setRequests] = React.useState<Inbound[]>(dummyItems)
-  const onSearch = (key) => {
-    console.log(key)
+  const [page, setPage] = React.useState(1)
+  const [totalItem, setTotalItem] = React.useState(0)
+  const Refresh = async () => {
+    const response = await GetAllInbound(api.apiClient, page)
+    setRequests(response.data.items)
+    setTotalItem(response.data.totalItems)
   }
+  React.useEffect(() => {
+    Refresh()
+  }, [page])
+
   return (
     <Template title="Daftar Request">
-      <Search
-        placeholder="nama=”asdf” status=”accepted”"
-        allowClear
-        onSearch={onSearch}
-        className="self-start w-80 mb-3"
-      />
       <Table
         dataSource={requests}
         rowKey="id"
@@ -59,7 +64,9 @@ export default () => {
         <Column
           title="Tanggal Permintaan"
           dataIndex="createdAt"
-          render={(createdAt: Date) => <p>{createdAt.toDateString()}</p>}
+          render={(createdAt: string) => (
+            <p>{new Date(createdAt).toDateString()}</p>
+          )}
         ></Column>
         <Column
           title="Status"
@@ -72,7 +79,8 @@ export default () => {
           render={(status) => {
             if (
               status === InboundStatus.ACCEPTED ||
-              status === InboundStatus.REJECTED
+              status === InboundStatus.REJECTED ||
+              status === InboundStatus.RECEIVED
             ) {
               return <p>-</p>
             }
@@ -89,6 +97,12 @@ export default () => {
           }}
         ></Column>
       </Table>
+      <Pagination
+        pageSize={10}
+        current={page}
+        total={totalItem}
+        onChange={(page) => setPage(page)}
+      />
     </Template>
   )
 }
