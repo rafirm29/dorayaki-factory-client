@@ -2,3 +2,6 @@ body {
   background-color: #F0F2F5;
 }
 
+.debug {
+  border: 1px solid red;
+}

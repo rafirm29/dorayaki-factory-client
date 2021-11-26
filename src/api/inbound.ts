@@ -20,7 +20,16 @@ export const AcceptInbound = (
     id: number
 ): Promise<BasePaginationResponse<Inbound>> => {
     return axios
-        .get("/api/inbound/accept/" + id)
+        .post("/api/inbound/accept/" + id)
+        .then((response) => response.data as BaseResponse)
+}
+
+export const RejectInbound = (
+    axios: AxiosInstance,
+    id: number
+): Promise<BasePaginationResponse<Inbound>> => {
+    return axios
+        .post("/api/inbound/reject/" + id)
         .then((response) => response.data as BaseResponse)
 }
   

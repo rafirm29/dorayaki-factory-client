@@ -157,7 +157,6 @@ interface DetailProps extends Ingredient {
 }
 
 const DetailModal = (props: DetailProps) => {
-    console.log(props)
     return (
         <Modal
             keyboard

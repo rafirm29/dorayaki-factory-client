@@ -62,8 +62,7 @@ const recipesadd = () => {
   );
   const [editingKey, setEditingKey] = useState('');
   const Refresh = async () => {
-    const response = await GetAllIngredientMinified(api.apiClient);
-    console.log(response);
+    const response = await GetAllIngredientMinified(api.apiClient)
     setAvailableIngredients(response.data);
   };
   useEffect(() => {
